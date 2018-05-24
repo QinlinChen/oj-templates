@@ -3,6 +3,7 @@
 #include <cmath>
 #include <assert.h>
 #include <iostream>
+#include <fstream>
 #include <random>
 #include <string>
 
@@ -142,7 +143,7 @@ bool witness(LL a, LL n)
 	LL nextx;
 	for (int i = 1; i <= t; ++i) {
 		nextx = (x * x) % n;
-		assert(nextx > 0);
+		assert(nextx >= 0);
 		if (nextx == 1 && x != 1 && x != n - 1)
 			return true;
 		x = nextx;
@@ -152,13 +153,14 @@ bool witness(LL a, LL n)
 	return false;
 }
 
-bool primeTest(LL number)
+static std::default_random_engine e;
+
+bool primeTest(LL number, int tryCount)
 {
 	assert(number > 0);
 	if (!(number & 0x1))
 		return false;
-	const int tryCount = 5;
-	std::default_random_engine e;
+	
 	std::uniform_int_distribution<LL> u(1, number - 1);
 	for (int i = 1; i <= tryCount; ++i) {
 		LL a = u(e);
@@ -166,6 +168,22 @@ bool primeTest(LL number)
 			return false;
 	}
 	return true;
+}
+
+LL primeGenerator(int length)
+{
+	int tryCount = 2 * length * length;
+	std::uniform_int_distribution<int> u(0, 1);
+
+	for (int i = 1; i <= tryCount; ++i) {
+		LL n = 1;
+		for (int j = 1; j <= length - 2; ++j)
+			n = (n << 1) + u(e);
+		n = (n << 1) + 1;
+		if (primeTest(n, length))
+			return n;
+	}
+	return -1;
 }
 
 void encode(std::istream &src, std::ostream &dst, LL e, LL n)
